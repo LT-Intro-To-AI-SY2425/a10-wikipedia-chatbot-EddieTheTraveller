@@ -143,23 +143,18 @@ def get_legislature(country_name: str) -> str:
     Returns:
         Legislature of the given country
     """
-    soup = BeautifulSoup(get_page_html(country_name), "html.parser")
-    infobox = soup.find(class_="infobox")
-    
-    if not infobox:
-        return "No legislature data found"
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
 
-    # Locate the row with 'Legislature' and extract its text, ignoring links
-    for row in infobox.find_all("tr"):
-        header = row.find("th")
-        data = row.find("td")
-        
-        if header and "Legislature" in header.get_text():
-            return data.get_text()  # Extract text without hyperlinks
+    # Regex pattern to find "Legislature" and capture the following text (the legislature name)
+    pattern = r"Legislature\s*[:\-]?\s*(?P<legislature>[A-Za-z0-9\s'(),\-]+)"
 
-    return "No legislature data found"
+    error_text = "Page infobox has no legislature information"
 
-
+    try:
+        match = get_match(infobox_text, pattern, error_text)
+        return match.group("legislature").strip()
+    except AttributeError:
+        return "No Legislature data found"
 
 
 def get_president(country_name: str) -> str:
@@ -317,3 +312,4 @@ def query_loop() -> None:
 
 # uncomment the next line once you've implemented everything are ready to try it out
 query_loop()
+
