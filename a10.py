@@ -111,6 +111,82 @@ def get_birth_date(name: str) -> str:
 
     return match.group("birth")
 
+def get_gdp_ppp(entity_name: str) -> str:
+    """Gets GDP (PPP) of a country or entity from Wikipedia.
+
+    Args:
+        entity_name - name of the country/entity
+
+    Returns:
+        GDP (PPP) of the given country/entity
+    """
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
+
+    # Enhanced regex pattern to accurately capture GDP (PPP) values
+    pattern = r"(?:GDP \(PPP\).*?\$ ?)(?P<gdp>[\d,.]+) (?:billion|trillion)"
+    error_text = "Page infobox has no GDP (PPP) information"
+
+    try:
+        match = get_match(infobox_text, pattern, error_text)
+        return f"${match.group('gdp')} billion USD (PPP) (approx)"
+    except AttributeError:
+        return "No GDP (PPP) data found"
+
+
+
+def get_legislature(country_name: str) -> str:
+    """Gets the legislature of a given country from Wikipedia.
+
+    Args:
+        country_name - name of the country
+
+    Returns:
+        Legislature of the given country
+    """
+    soup = BeautifulSoup(get_page_html(country_name), "html.parser")
+    infobox = soup.find(class_="infobox")
+    
+    if not infobox:
+        return "No legislature data found"
+
+    # Locate the row with 'Legislature' and extract its text, ignoring links
+    for row in infobox.find_all("tr"):
+        header = row.find("th")
+        data = row.find("td")
+        
+        if header and "Legislature" in header.get_text():
+            return data.get_text()  # Extract text without hyperlinks
+
+    return "No legislature data found"
+
+
+
+
+def get_president(country_name: str) -> str:
+    """Gets the current president of a given country from Wikipedia.
+
+    Args:
+        country_name - name of the country
+
+    Returns:
+        Name of the current president
+    """
+    soup = BeautifulSoup(get_page_html(country_name), "html.parser")
+    infobox = soup.find(class_="infobox")
+
+    if not infobox:
+        return "No president data found"
+
+    # Locate the row with 'President' and extract its text, ignoring links
+    for row in infobox.find_all("tr"):
+        header = row.find("th")
+        data = row.find("td")
+
+        if header and "President" in header.get_text():
+            return data.get_text()  # Extract text without hyperlinks
+
+    return "No president data found"
+
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
@@ -141,6 +217,42 @@ def polar_radius(matches: List[str]) -> List[str]:
     return [get_polar_radius(matches[0])]
 
 
+def gdp_ppp(matches: List[str]) -> List[str]:
+    """Returns GDP (PPP) total of given entity
+
+    Args:
+        matches - match from pattern for entity to find GDP (PPP) total of
+
+    Returns:
+        GDP (PPP) total of entity
+    """
+    return [get_gdp_ppp(" ".join(matches))]
+
+
+def legislature(matches: List[str]) -> List[str]:
+    """Returns the legislature of a given country.
+
+    Args:
+        matches - match from pattern for country to find legislature of
+
+    Returns:
+        Legislature of the country
+    """
+    return [get_legislature(" ".join(matches))]
+
+
+def president(matches: List[str]) -> List[str]:
+    """Returns the current president of a given country.
+
+    Args:
+        matches - match from pattern for country to find president of
+
+    Returns:
+        Current president of the country
+    """
+    return [get_president(" ".join(matches))]
+
+
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
     raise KeyboardInterrupt
@@ -156,6 +268,10 @@ Action = Callable[[List[str]], List[Any]]
 pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
+    ("what is the gdp ppp of %".split(), gdp_ppp),
+    ("what is the legislature of %".split(), legislature),
+    ("who is the president of %".split(), president),
+
     (["bye"], bye_action),
 ]
 
@@ -184,7 +300,7 @@ def search_pa_list(src: List[str]) -> List[str]:
 def query_loop() -> None:
     """The simple query loop. The try/except structure is to catch Ctrl-C or Ctrl-D
     characters and exit gracefully"""
-    print("Welcome to the movie database!\n")
+    print("Welcome to the Wikipedia database!\n")
     while True:
         try:
             print()
