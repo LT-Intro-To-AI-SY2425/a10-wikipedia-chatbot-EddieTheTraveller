@@ -124,16 +124,10 @@ def get_gdp_ppp(entity_name: str) -> str:
 
     # Enhanced regex pattern to accurately capture GDP (PPP) values
     pattern = r"(?:GDP \(PPP\).*?\$ ?)(?P<gdp>[\d,.]+) (?:billion|trillion)"
-    error_text = "Page infobox has no GDP (PPP) information"
-
-    try:
-        match = get_match(infobox_text, pattern, error_text)
-        return f"${match.group('gdp')} billion USD (PPP) (approx)"
-    except AttributeError:
-        return "No GDP (PPP) data found"
-
-
-
+    error_text = ("Page infobox has no GDP (PPP) information")
+    match = get_match(infobox_text, pattern, error_text)
+    return f"${match.group('gdp')} billion USD (PPP) (approx)"
+        
 def get_legislature(country_name: str) -> str:
     """Gets the legislature of a given country from Wikipedia.
 
@@ -148,12 +142,8 @@ def get_legislature(country_name: str) -> str:
     # Regex pattern to find "Legislature" and capture the following text (the legislature name)
     pattern = r"Legislature(?:\s*|)(?P<legislature>[A-Za-z0-9\s'(),\-]+?)(?=\s*(\[|Upper house|Lower house|Government|Executive|Independence|Area|Formation|$))"
     error_text = "Page infobox has no legislature information"
-
-    try:
-        match = get_match(infobox_text, pattern, error_text)
-        return match.group("legislature").strip()
-    except AttributeError:
-        return "No Legislature data found"
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("legislature")
 
 def get_capital(country_name: str) -> str:
     """Gets the capital of a given country from Wikipedia and prints the extracted infobox for debugging.
@@ -169,12 +159,8 @@ def get_capital(country_name: str) -> str:
     # Regex pattern to extract the capital city
     pattern = r"Capital(?:\s*(?:and largest city)?)?\s*[:\-]?\s*(?P<capital>[A-Za-z\s'(),\-\.]+)(?=\s*[0-9]|\s*\[|$)"
     error_text = "Page infobox has no capital information"
-
-    try:
-        match = get_match(infobox_text, pattern, error_text)
-        return match.group("capital").strip()
-    except AttributeError:
-        return "No Capital data found"
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("capital")
 
 
 
@@ -216,7 +202,7 @@ def gdp_ppp(matches: List[str]) -> List[str]:
     Returns:
         GDP (PPP) total of entity
     """
-    return [get_gdp_ppp(" ".join(matches))]
+    return [get_gdp_ppp(matches[0])]
 
 
 def legislature(matches: List[str]) -> List[str]:
