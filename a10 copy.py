@@ -155,31 +155,27 @@ def get_legislature(country_name: str) -> str:
     except AttributeError:
         return "No Legislature data found"
 
-
-def get_president(country_name: str) -> str:
-    """Gets the current president of a given country from Wikipedia.
+def get_capital(country_name: str) -> str:
+    """Gets the capital of a given country from Wikipedia and prints the extracted infobox for debugging.
 
     Args:
         country_name - name of the country
 
     Returns:
-        Name of the current president
+        Capital city of the given country
     """
-    soup = BeautifulSoup(get_page_html(country_name), "html.parser")
-    infobox = soup.find(class_="infobox")
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
 
-    if not infobox:
-        return "No president data found"
+    # Regex pattern to extract the capital city
+    pattern = r"Capital(?:\s*(?:and largest city)?)?\s*[:\-]?\s*(?P<capital>[A-Za-z\s'(),\-\.]+)(?=\s*[0-9]|\s*\[|$)"
+    error_text = "Page infobox has no capital information"
 
-    # Locate the row with 'President' and extract its text, ignoring links
-    for row in infobox.find_all("tr"):
-        header = row.find("th")
-        data = row.find("td")
+    try:
+        match = get_match(infobox_text, pattern, error_text)
+        return match.group("capital").strip()
+    except AttributeError:
+        return "No Capital data found"
 
-        if header and "President" in header.get_text():
-            return data.get_text()  # Extract text without hyperlinks
-
-    return "No president data found"
 
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
@@ -234,17 +230,19 @@ def legislature(matches: List[str]) -> List[str]:
     """
     return [get_legislature(" ".join(matches))]
 
-
-def president(matches: List[str]) -> List[str]:
-    """Returns the current president of a given country.
+def capital(matches: List[str]) -> List[str]:
+    """Returns the capital of the given country.
 
     Args:
-        matches - match from pattern for country to find president of
+        matches - match from pattern for country to find capital of
 
     Returns:
-        Current president of the country
+        Capital city of the country
     """
-    return [get_president(" ".join(matches))]
+    return [get_capital(" ".join(matches))]
+
+
+
 
 
 # dummy argument is ignored and doesn't matter
@@ -264,7 +262,8 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("what is the polar radius of %".split(), polar_radius),
     ("what is the gdp ppp of %".split(), gdp_ppp),
     ("what is the legislature of %".split(), legislature),
-    ("who is the president of %".split(), president),
+    ("what is the capital of %".split(), capital),
+    
 
     (["bye"], bye_action),
 ]
