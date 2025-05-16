@@ -146,8 +146,7 @@ def get_legislature(country_name: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
 
     # Regex pattern to find "Legislature" and capture the following text (the legislature name)
-    pattern = r"Legislature\s*[:\-]?\s*(?P<legislature>[A-Za-z0-9\s'(),\-]+)"
-
+    pattern = r"Legislature(?:\s*|)(?P<legislature>[A-Za-z0-9\s'(),\-]+?)(?=\s*(\[|Upper house|Lower house|Government|Executive|Independence|Area|Formation|$))"
     error_text = "Page infobox has no legislature information"
 
     try:
