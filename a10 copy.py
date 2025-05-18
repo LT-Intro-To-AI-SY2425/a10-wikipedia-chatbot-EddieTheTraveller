@@ -157,7 +157,7 @@ def get_capital(country_name: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
 
     # Regex pattern to extract the capital city
-    pattern = r"Capital(?:\s*(?:and largest city)?)?\s*[:\-]?\s*(?P<capital>[A-Za-z\s'(),\-\.]+)(?=\s*[0-9]|\s*\[|$)"
+    pattern = r"Capital(?:\s*(?:and largest city)?)(?P<capital>[A-Za-z\s'(),\-\.]+)(?=\s*[0-9]|\s*\[|$)"
     error_text = "Page infobox has no capital information"
     match = get_match(infobox_text, pattern, error_text)
     return match.group("capital")
