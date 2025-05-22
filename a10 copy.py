@@ -123,10 +123,14 @@ def get_gdp_ppp(entity_name: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(entity_name)))
 
     # Enhanced regex pattern to accurately capture GDP (PPP) values
-    pattern = r"(?:GDP \(PPP\).*?\$ ?)(?P<gdp>[\d,.]+) (?:billion|trillion)"
+    pattern = r"(?:GDP \(PPP\).*?\$ ?)(?P<gdp>[\d,.]+) (?P<unit>billion|trillion)"
     error_text = ("Page infobox has no GDP (PPP) information")
     match = get_match(infobox_text, pattern, error_text)
-    return f"${match.group('gdp')} billion USD (PPP) (approx)"
+
+    gdp_value = match.group("gdp")
+    unit = match.group("unit")
+
+    return f"${gdp_value} {unit} USD (PPP) (approx)"
         
 def get_legislature(country_name: str) -> str:
     """Gets the legislature of a given country from Wikipedia.
